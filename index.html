@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Christmas Wonderland</title>
+    <meta name="description" content="An interactive Christmas wonderland — a giant glowing tree, mystery presents, wishes upon a star and a snow globe village." />
+    <meta name="theme-color" content="#060b18" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <canvas id="scene" tabindex="0" aria-label="Christmas Wonderland — an interactive 3D Christmas scene"></canvas>
+    <canvas id="fx2d" aria-hidden="true"></canvas>
+
+    <!-- Loading -->
+    <div id="loader" class="loader" role="status" aria-live="polite">
+      <div class="loader__ring">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="loader__track" cx="60" cy="60" r="54" />
+          <circle class="loader__bar" cx="60" cy="60" r="54" />
+        </svg>
+        <svg class="loader__star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5l2.6 7.1 7.4.3-5.8 4.6 2 7.2L12 16.5l-6.2 4.2 2-7.2L2 8.9l7.4-.3z" /></svg>
+      </div>
+      <p class="loader__label"><span id="loaderLabel">Gathering starlight</span> <span id="loaderPct">0%</span></p>
+    </div>
+
+    <!-- Scene 1: Invitation -->
+    <section id="intro" class="intro" hidden>
+      <p class="eyebrow">Christmas Eve &middot; a winter night</p>
+      <h1 class="intro__title" id="introTitle">Something Magical Awaits...</h1>
+      <div class="flourish" aria-hidden="true">
+        <span></span>
+        <svg viewBox="0 0 24 24"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
+        <span></span>
+      </div>
+      <p class="intro__subtitle">A little wonderland, made for the Christmas spirit.</p>
+      <button id="enterBtn" class="btn-enter" type="button">
+        <span class="btn-enter__label">Enter the Wonderland</span>
+      </button>
+      <p class="intro__hint">Sound begins once you enter &middot; you can mute it at any time</p>
+    </section>
+
+    <!-- Always-visible sound control -->
+    <button id="soundBtn" class="icon-btn sound-btn" type="button" aria-pressed="true" aria-label="Mute sound" hidden>
+      <svg class="i-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" /><path class="w" d="M15.5 9a4 4 0 010 6M18 6.5a7.5 7.5 0 010 11" /></svg>
+      <svg class="i-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" /><path class="w" d="M16 9.5l5 5M21 9.5l-5 5" /></svg>
+    </button>
+
+    <!-- HUD -->
+    <header id="hud" class="hud" hidden>
+      <div class="brand">Christmas <em>Wonderland</em></div>
+      <div id="giftCounter" class="gift-counter" aria-live="polite">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11.5" rx="1.2" /><path d="M2.5 9h19M12 9v11.5M12 9c-1.5-3.5-6-4.5-6-1.5S10 9 12 9zm0 0c1.5-3.5 6-4.5 6-1.5S14 9 12 9z" /></svg>
+        <span><b id="giftCount">0</b> / 5 magical gifts discovered</span>
+        <i class="gift-counter__pips" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></i>
+      </div>
+    </header>
+
+    <div id="hint" class="hint" aria-live="polite"></div>
+
+    <!-- Scene 4: The Christmas Magic Playground -->
+    <nav id="dock" class="dock" hidden aria-label="Christmas magic">
+      <button type="button" data-action="wish">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.2 5.6 6 .4-4.6 3.8 1.5 5.9L12 15.5l-5.1 3.2 1.5-5.9L3.8 9l6-.4z" /></svg>
+        <span>Make a Wish</span>
+      </button>
+      <button type="button" data-action="presents">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11.5" rx="1.2" /><path d="M2.5 9h19M12 9v11.5M12 9c-1.5-3.5-6-4.5-6-1.5S10 9 12 9zm0 0c1.5-3.5 6-4.5 6-1.5S14 9 12 9z" /></svg>
+        <span>Open a Present</span>
+      </button>
+      <button type="button" data-action="globe">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10.5" r="7" /><path d="M6.5 20.5h11l-1.5-3.2H8z" /><path d="M9 12.5l3-4 3 4z" /></svg>
+        <span>Snow Globe</span>
+      </button>
+      <button type="button" data-action="lights" aria-expanded="false" aria-controls="lightsPanel">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17h6M10 20.5h4M12 3a6 6 0 00-3.6 10.8c.7.6 1.1 1.4 1.1 2.2h5c0-.8.4-1.6 1.1-2.2A6 6 0 0012 3z" /></svg>
+        <span>Lights</span>
+      </button>
+      <button type="button" data-action="finale">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" /></svg>
+        <span>Finale</span>
+      </button>
+    </nav>
+
+    <!-- Lights control -->
+    <div id="lightsPanel" class="panel lights-panel" hidden role="dialog" aria-label="Lights and atmosphere">
+      <p class="panel__title">Tree lights</p>
+      <div class="moods" role="radiogroup" aria-label="Lighting mood">
+        <button type="button" role="radio" data-mood="gold" aria-checked="true"><i class="sw sw--gold"></i><span>Warm Gold</span></button>
+        <button type="button" role="radio" data-mood="classic" aria-checked="false"><i class="sw sw--classic"></i><span>Colourful</span></button>
+        <button type="button" role="radio" data-mood="frost" aria-checked="false"><i class="sw sw--frost"></i><span>Winter Blue</span></button>
+      </div>
+      <label class="slider">
+        <span>Snowfall</span>
+        <input id="snowSlider" type="range" min="0" max="100" value="55" />
+      </label>
+      <label class="switch">
+        <span>Music</span>
+        <input id="musicToggle" type="checkbox" checked />
+        <i aria-hidden="true"></i>
+      </label>
+    </div>
+
+    <!-- Hover / focus tooltip -->
+    <div id="tooltip" class="tooltip" hidden></div>
+
+    <!-- Reveal card -->
+    <div id="card" class="card" hidden role="dialog" aria-modal="false" aria-labelledby="cardTitle">
+      <button type="button" class="card__close" aria-label="Close and return to the tree">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+      <div class="card__body"></div>
+    </div>
+
+    <!-- Make a wish -->
+    <div id="wishPanel" class="wish" hidden role="dialog" aria-labelledby="wishTitle">
+      <div class="wish__star" aria-hidden="true">
+        <svg viewBox="0 0 100 100"><path d="M50 4l11 33h35L68 58l11 34-29-21-29 21 11-34L4 37h35z" /></svg>
+      </div>
+      <h2 id="wishTitle" class="wish__title">Make a wish</h2>
+      <p class="wish__sub">Whisper your Christmas wish to the star. It will rise into the night sky and stay there.</p>
+      <form id="wishForm" class="wish__form" autocomplete="off">
+        <input id="wishInput" type="text" maxlength="80" placeholder="I wish for…" aria-label="Your Christmas wish" required />
+        <button type="submit" class="btn-gold">Send it to the sky</button>
+      </form>
+      <button type="button" class="link-btn" id="wishCancel">Back to the tree</button>
+    </div>
+
+    <!-- Snow globe controls -->
+    <div id="globeUI" class="globe-ui" hidden>
+      <p id="globeHint" class="globe-ui__hint">Tap the globe to step inside the village</p>
+      <div class="globe-ui__row">
+        <button type="button" class="btn-ghost" id="globeShake">Shake the globe</button>
+        <button type="button" class="btn-ghost" id="globeLeave" hidden>Leave the village</button>
+        <button type="button" class="btn-ghost" id="globeBack">Back to the tree</button>
+      </div>
+    </div>
+
+    <!-- Scene 5: Finale -->
+    <section id="finale" class="finale" hidden aria-labelledby="finaleTitle">
+      <h2 id="finaleTitle" class="finale__title">May your Christmas be filled with magic.</h2>
+      <p class="finale__sub">Merry Christmas &amp; a peaceful New Year</p>
+      <button type="button" id="anotherWish" class="btn-enter"><span class="btn-enter__label">Make Another Wish</span></button>
+      <button type="button" id="finaleReturn" class="link-btn">Return to the wonderland</button>
+    </section>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="fade" class="fade" aria-hidden="true"></div>
+
+    <noscript><p class="noscript">Christmas Wonderland needs JavaScript to open its doors.</p></noscript>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
